@@ -1,0 +1,47 @@
+﻿name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze project
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build web
+        run: >
+          flutter build web --release
+          --base-href /SARIEGO_UNIT8_ASSIGNMENT/
+          --dart-define=CMS=${{ vars.CMS }}
+          --dart-define=CMS_SPACE=${{ vars.CMS_SPACE }}
+          --dart-define=CMS_TOKEN=${{ secrets.CMS_TOKEN }}
