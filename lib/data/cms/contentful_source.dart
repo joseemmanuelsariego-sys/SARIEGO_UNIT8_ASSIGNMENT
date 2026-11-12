@@ -33,9 +33,6 @@ class ContentfulEventSource implements EventSource {
 
     final data = json as Map<String, dynamic>;
     final items = data['items'];
-    print(
-      'CONTENTFUL DEBUG: Received ${items is List ? items.length : 0} items',
-    );
 
     if (items is! List) {
       throw CmsException('Invalid Contentful response: items is missing.');
@@ -78,7 +75,7 @@ class ContentfulEventSource implements EventSource {
         ),
       );
     }
-    print('CONTENTFUL DEBUG: Successfully parsed ${events.length} events');
+
     return events;
   }
 }
