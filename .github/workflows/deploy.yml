@@ -26,12 +26,41 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.7'
+          flutter-version: "3.47.7"
           channel: stable
           cache: true
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Verify Contentful connection
+        env:
+          CMS: ${{ vars.CMS }}
+          CMS_SPACE: ${{ vars.CMS_SPACE }}
+          CMS_TOKEN: ${{ secrets.CMS_TOKEN }}
+        run: |
+          echo "CMS: ${CMS:-MISSING}"
+          echo "CMS_SPACE: ${CMS_SPACE:-MISSING}"
+
+          if [ -z "$CMS_TOKEN" ]; then
+            echo "CMS_TOKEN: MISSING"
+            exit 1
+          else
+            echo "CMS_TOKEN: PRESENT"
+          fi
+
+          STATUS=$(curl -sS -o /tmp/contentful.json -w "%{http_code}" \
+            -H "Authorization: Bearer $CMS_TOKEN" \
+            "https://cdn.contentful.com/spaces/$CMS_SPACE/environments/master/entries?content_type=fairEvent&limit=1")
+
+          echo "Contentful HTTP status: $STATUS"
+
+          if [ "$STATUS" != "200" ]; then
+            cat /tmp/contentful.json
+            exit 1
+          fi
+
+          echo "Published events: $(jq -r '.total' /tmp/contentful.json)"
 
       - name: Build Flutter web
         run: >
